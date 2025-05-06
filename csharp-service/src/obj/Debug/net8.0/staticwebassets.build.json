@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "YiLWduaanrpLUexn71mx9+CwmWrRgJ4s6lozCVGOOFw=",
+  "Source": "CSharpService",
+  "BasePath": "_content/CSharpService",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

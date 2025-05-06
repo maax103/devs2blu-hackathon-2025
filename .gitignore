@@ -1,0 +1,52 @@
+# Arquivos e diretórios específicos do Java
+/java-service/target/
+/java-service/build/
+/java-service/.settings/
+/java-service/.classpath
+/java-service/.project
+/java-service/.factorypath
+/java-service/*.iml
+/java-service/.idea/
+
+# Arquivos e diretórios específicos do C#
+/csharp-service/bin/
+/csharp-service/obj/
+/csharp-service/.vs/
+/csharp-service/Properties/launchSettings.json
+/csharp-service/*.user
+
+# Arquivos e diretórios específicos do Node.js
+/nodejs-service/node_modules/
+/nodejs-service/npm-debug.log
+/nodejs-service/package-lock.json
+/nodejs-service/.env
+
+# Arquivos e diretórios específicos do Flutter
+/flutter-service/.dart_tool/
+/flutter-service/.flutter-plugins
+/flutter-service/.flutter-plugins-dependencies
+/flutter-service/pubspec.lock
+/flutter-service/build/
+/flutter-service/.packages
+
+# Logs
+*.log
+
+# Diretórios de cache
+.sass-cache/
+.npm/
+.yarn/
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Diretórios de IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

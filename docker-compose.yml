@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Serviço Java com Spring Boot (OpenJDK 25)
+  java-service:
+    build:
+      context: ./java-service
+      dockerfile: Dockerfile
+    container_name: java-dev
+    ports:
+      - "8080:8080"     # Porta da aplicação
+      - "5005:5005"     # Porta para debug remoto
+    volumes:
+      - ./java-service/src:/app/src
+      - ./java-service/build:/app/build
+      - maven-repo:/root/.m2
+    environment:
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  # Serviço C# com .NET
+  csharp-service:
+    build:
+      context: ./csharp-service
+      dockerfile: Dockerfile
+    container_name: csharp-dev
+    ports:
+      - "5000:5000"     # Porta da aplicação
+      - "5001:5001"     # Porta HTTPS
+      - "5002:5002"     # Porta para debug remoto
+    volumes:
+      - ./csharp-service/src:/app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - VSTEST_HOST_DEBUG=1
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  # Serviço Node.js
+  nodejs-service:
+    build:
+      context: ./nodejs-service
+      dockerfile: Dockerfile
+    container_name: nodejs-dev
+    ports:
+      - "3000:3000"     # Porta da aplicação
+      - "9229:9229"     # Porta para debug remoto
+    volumes:
+      - ./nodejs-service:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  # Serviço Flutter para desenvolvimento web (versão leve)
+  flutter-service:
+    build:
+      context: ./flutter-service
+      dockerfile: Dockerfile
+    container_name: flutter-dev
+    ports:
+      - "8090:8090"     # Porta da aplicação web Flutter
+      - "8091:8091"     # Porta para debug remoto
+    volumes:
+      - ./flutter-service:/app
+      - flutter-cache:/root/.pub-cache
+    environment:
+      - FLUTTER_WEB_PORT=8090
+      - FLUTTER_DEBUG_PORT=8091
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+volumes:
+  maven-repo:
+  node_modules:
+  flutter-cache:
+
+networks:
+  dev-network:
+    driver: bridge
