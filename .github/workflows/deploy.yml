@@ -31,7 +31,7 @@ jobs:
     - name: Deploy React App para EC2 (via NGINX)
       run: |
         # Copia os arquivos da build para uma pasta temporária no servidor
-        scp -r ./frontend/build/* ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }}:/tmp/react-build
+        scp -r ./front/build/* ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }}:/tmp/react-build
 
         # Substitui o conteúdo da pasta servida pelo NGINX
         ssh ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }} << 'EOF'
