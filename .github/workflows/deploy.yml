@@ -23,7 +23,7 @@ jobs:
 
     ## ---------- FRONTEND ----------
     - name: Build React App
-      working-directory: frontend  # ajuste conforme a estrutura do seu projeto
+      working-directory: front  # ajuste conforme a estrutura do seu projeto
       run: |
         npm ci
         npm run build
