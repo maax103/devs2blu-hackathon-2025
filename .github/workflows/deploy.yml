@@ -1,0 +1,52 @@
+name: Deploy React and Java App
+
+on:
+  push:
+    branches: [ main ]  # ou seu branch de produção
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.FRONTEND_EC2_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.BACKEND_EC2_HOST }} >> ~/.ssh/known_hosts
+
+    ## ---------- FRONTEND ----------
+    - name: Build React App
+      working-directory: frontend  # ajuste conforme a estrutura do seu projeto
+      run: |
+        npm ci
+        npm run build
+
+    - name: Deploy React App para EC2 (via NGINX)
+      run: |
+        # Copia os arquivos da build para uma pasta temporária no servidor
+        scp -r ./frontend/build/* ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }}:/tmp/react-build
+
+        # Substitui o conteúdo da pasta servida pelo NGINX
+        ssh ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }} << 'EOF'
+          sudo rm -rf /usr/share/nginx/html/*
+          sudo cp -r /tmp/react-build/* /usr/share/nginx/html/
+          sudo rm -rf /tmp/react-build
+          sudo systemctl reload nginx
+        EOF
+
+    ## ---------- BACKEND ----------
+ #   - name: Build Java App
+ #     working-directory: backend
+ #     run: ./gradlew build
+#
+ #   - name: Deploy Java App para EC2
+ #     run: |
+ #       scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ secrets.BACKEND_EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app.jar
+ #       ssh ${{ secrets.EC2_USER }}@${{ secrets.BACKEND_EC2_HOST }} 'sudo systemctl restart backend-app'
