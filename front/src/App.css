@@ -1,0 +1,71 @@
+*{
+  margin: 0;
+  padding: 0;
+  font-family:  Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4;
+}
+
+
+button{
+  display: block;
+  margin: 0 auto;
+  padding: 18px 60px;
+  font-size: 1.1rem;
+  background-color: rgb(169, 235, 169);
+  color: #2d2d2d;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover{
+   background-color: rgb(144, 211, 144);
+  transform: scale(1.05);
+}
+.container , h1{
+  text-align: center;
+  margin-top: 50px;
+   color: #3e2f5b;
+  margin-bottom: 60px;
+}
+
+.inputSubmit{
+  font-size: 1.2rem;
+  padding: 40px;
+  border: none;
+  background-color:  rgb(203, 193, 212);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 900px;
+  display: block;
+  margin:  0 auto 40px auto; /*Usado para centralizar o elemento na tela*/
+  margin-top: 80px; /* */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  resize: vertical; /* permite redimensionar verticalmente */
+}
+
+
+
+.inputSubmit:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100,100,150,0.2);
+}
+
+.resultado {
+  margin: 80px auto 0 auto;; /*Usado para centralizar o elemento na tela*/
+  background-color: rgb(203, 193, 212);
+  border: none;
+  padding: 50px;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  color: #333;
+  max-width: 800px;
+  height: 400px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  text-align: left;
+  line-height: 1.6;
+}
+.resultado , p{
+  background-color: rgb(203, 193, 212);
+}
