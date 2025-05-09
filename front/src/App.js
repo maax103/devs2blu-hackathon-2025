@@ -1,9 +1,13 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import "./App.css";
 
 function App(){
   const [clausula, setClausula] = useState("");
   const [resposta, setResposta] = useState("");
+
+  useEffect(() => {
+    setResposta("");
+  }, []);
 
   return(
     <div className="container">
