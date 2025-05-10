@@ -48,9 +48,10 @@ jobs:
       id: terraform-outputs
       working-directory: ./terraform
       run: |
-        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip | tr -d '\r')
-        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip | tr -d '\r')
-        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip | tr -d '\r')
+        # Extração limpa dos IPs com grep
+        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
+        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
+        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
 
         echo "== IPs obtidos do Terraform =="
         echo "NGINX_PUBLIC_IP: $NGINX_PUBLIC_IP"
