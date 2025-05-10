@@ -45,6 +45,8 @@ jobs:
 
     - name: Get IPs
       id: get-ips
+      env:
+        TF_IN_AUTOMATION: true
       working-directory: ./terraform
       run: |
         echo "nginx_ip=$(terraform output -raw nginx_public_ip)" >> $GITHUB_OUTPUT
