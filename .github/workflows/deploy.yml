@@ -34,6 +34,7 @@ jobs:
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.7  
+        terraform_wrapper: false
 
     - name: Terraform Init
       working-directory: ./terraform
@@ -48,6 +49,7 @@ jobs:
       run: |
         IP=$(terraform output -raw nginx_public_ip)
         CLEAN_IP=$(echo "$IP" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1 | tr -d '\n')
+        echo IP=$IP
         echo CLEAN_IP=$CLEAN_IP
         echo "nginx_ip=$CLEAN_IP" >> "$GITHUB_OUTPUT"
 
