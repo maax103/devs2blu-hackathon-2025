@@ -47,9 +47,13 @@ jobs:
       id: terraform-outputs
       working-directory: ./terraform
       run: |
-        echo "nginx_public_ip=$(terraform output -raw nginx_public_ip)" >> $GITHUB_OUTPUT
-        echo "nginx_private_ip=$(terraform output -raw nginx_private_ip)" >> $GITHUB_OUTPUT
-        echo "backend_private_ip=$(terraform output -raw backend_private_ip)" >> $GITHUB_OUTPUT
+        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip | tr -d '\n')
+        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip | tr -d '\n')
+        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip | tr -d '\n')
+        
+        echo "nginx_public_ip=$NGINX_PUBLIC_IP" >> $GITHUB_OUTPUT
+        echo "nginx_private_ip=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
+        echo "backend_private_ip=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
 
     - name: Setup SSH
       run: |
