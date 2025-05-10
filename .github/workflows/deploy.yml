@@ -2,17 +2,16 @@ name: Deploy React and Java App
 
 on:
   push:
-    branches: [ main ]  # ou seu branch de produção
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Definir outputs do job para serem usados em outros jobs, se necessário
     outputs:
-      nginx_public_ip: ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}
-      nginx_private_ip: ${{ steps.terraform-outputs.outputs.NGINX_PRIVATE_IP }}
-      backend_private_ip: ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}
+      nginx_public_ip: ${{ steps.terraform-outputs.outputs.nginx_public_ip }}
+      nginx_private_ip: ${{ steps.terraform-outputs.outputs.nginx_private_ip }}
+      backend_private_ip: ${{ steps.terraform-outputs.outputs.backend_private_ip }}
 
     steps:
     - name: Checkout código
@@ -44,43 +43,34 @@ jobs:
       working-directory: ./terraform
       run: terraform apply -auto-approve
 
-    - name: Capturar outputs do Terraform
+    - name: Get Terraform Outputs
       id: terraform-outputs
       working-directory: ./terraform
       run: |
-        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
-        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
-        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip 2>/dev/null | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}')
-
-        {
-          echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP"
-          echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP"
-          echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP"
-        } >> $GITHUB_OUTPUT
+        echo "nginx_public_ip=$(terraform output -raw nginx_public_ip)" >> $GITHUB_OUTPUT
+        echo "nginx_private_ip=$(terraform output -raw nginx_private_ip)" >> $GITHUB_OUTPUT
+        echo "backend_private_ip=$(terraform output -raw backend_private_ip)" >> $GITHUB_OUTPUT
 
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }} >> ~/.ssh/known_hosts
-        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }} >> ~/.ssh/known_hosts
-
+        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.nginx_public_ip }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.backend_private_ip }} >> ~/.ssh/known_hosts
 
     ## ---------- FRONTEND ----------
     - name: Build React App
-      working-directory: front  # ajuste conforme a estrutura do seu projeto
+      working-directory: front
       run: |
         npm ci
         npm run build
 
-    - name: Deploy React App para EC2 (via NGINX)
+    - name: Deploy React App to EC2 (NGINX)
       run: |
-        # Copia os arquivos da build para uma pasta temporária no servidor
-        scp -r ./front/build/* ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}:/tmp/react-build
-
-        # Substitui o conteúdo da pasta servida pelo NGINX
-        ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }} << 'EOF'
+        scp -r ./front/build/* ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/react-build
+        
+        ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }} << 'EOF'
           sudo rm -rf /usr/share/nginx/html/*
           sudo cp -r /tmp/react-build/* /usr/share/nginx/html/
           sudo rm -rf /tmp/react-build
@@ -88,36 +78,17 @@ jobs:
         EOF
 
     ## ---------- BACKEND ----------
- #   - name: Build Java App
- #     working-directory: backend
- #     run: ./gradlew build
-#
- #   - name: Deploy Java App para EC2
- #     run: |
- #       scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}:/home/${{ secrets.EC2_USER }}/app.jar
- #       ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }} 'sudo systemctl restart backend-app'
-    
-    # Salvar informações de deployment
-    - name: Salvar informações de deployment
-      run: |
-        mkdir -p deployment-info
-        echo "# Informações de Deployment - $(date)" > deployment-info/endpoints.md
-        echo "## Endereços das Instâncias" >> deployment-info/endpoints.md
-        echo "- Frontend (NGINX) - IP Público: ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}" >> deployment-info/endpoints.md
-        echo "- Frontend (NGINX) - IP Privado: ${{ steps.terraform-outputs.outputs.NGINX_PRIVATE_IP }}" >> deployment-info/endpoints.md
-        echo "- Backend - IP Privado: ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}" >> deployment-info/endpoints.md
-        echo "" >> deployment-info/endpoints.md
-        echo "## URLs da Aplicação" >> deployment-info/endpoints.md
-        echo "- Frontend: http://${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}" >> deployment-info/endpoints.md
-        echo "- API Backend (interno): http://${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}:8080" >> deployment-info/endpoints.md
-        
-        # Exibir também no console com formatação destacada
-        echo ""
-        echo "================================================================"
-        echo "                    INFORMAÇÕES DE DEPLOYMENT                    "
-        echo "================================================================"
-        cat deployment-info/endpoints.md
-        echo "================================================================"
-        echo ""
+    # - name: Build Java App
+    #   working-directory: backend
+    #   run: ./gradlew build
+    #
+    # - name: Deploy Java App to EC2
+    #   run: |
+    #     scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.backend_private_ip }}:/home/${{ secrets.EC2_USER }}/app.jar
+    #     ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.backend_private_ip }} 'sudo systemctl restart backend-app'
 
-        
+    - name: Save deployment info
+      run: |
+        echo "Frontend URL: http://${{ steps.terraform-outputs.outputs.nginx_public_ip }}" > deployment-info.txt
+        echo "Backend Private IP: ${{ steps.terraform-outputs.outputs.backend_private_ip }}" >> deployment-info.txt
+        cat deployment-info.txt
