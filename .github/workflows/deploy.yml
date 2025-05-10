@@ -50,6 +50,7 @@ jobs:
       working-directory: ./terraform
       run: |
         IP=$(terraform output -raw nginx_public_ip | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | tr -d '\n')
+        echo "Valor do IP extraído: '$IP'"
         echo "nginx_ip=$IP" >> "$GITHUB_OUTPUT"
 
     - name: Setup SSH
@@ -67,7 +68,7 @@ jobs:
     - name: Deploy to EC2
       run: |
         scp -r ./front/dist/* ec2-user@${{ steps.get-ips.outputs.nginx_ip }}:/tmp/app
-        ssh ubuntu@${{ steps.get-ips.outputs.nginx_ip }} '
+        ssh ec2-user@${{ steps.get-ips.outputs.nginx_ip }} '
           sudo rm -rf /var/www/html/*
           sudo mv /tmp/app/* /var/www/html/
           sudo systemctl restart nginx
