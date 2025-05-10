@@ -1,19 +1,17 @@
+FROM ubuntu:latest AS build
+
+RUN apt-get update
+RUN apt-get install openjdk-17-jdk -y
+COPY . .
+
+RUN apt-get install maven -y
+RUN mvn clean install
+RUN mvn clean package
+
 FROM openjdk:17-jdk-slim
 
-WORKDIR /app
+EXPOSE 8080
 
-# Install debugging tools
-RUN apt-get update && apt-get install -y \
-    maven \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /target/demo-0.0.1-SNAPSHOT.jar app.jar
 
-# Copy project configuration files
-COPY pom.xml ./
-COPY src ./src
-
-# Pre-download dependencies
-RUN mvn dependency:go-offline -B
-
-# Default command without duplicate debug config
-CMD ["mvn", "spring-boot:run"]
+ENTRYPOINT [ "java", "-jar", "app.jar" ]
