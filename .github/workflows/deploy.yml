@@ -73,7 +73,7 @@ jobs:
     - name: Deploy React App to EC2 (NGINX)
       run: |
         ls -la
-        scp -r ./front/build/* ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/react-build
+        scp -r ./front/dist/* ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/react-build
         
         ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }} << 'EOF'
           sudo rm -rf /usr/share/nginx/html/*
