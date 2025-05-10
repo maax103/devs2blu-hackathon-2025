@@ -45,7 +45,7 @@ function App() {
       }
 
       const data = await response.json();
-      setResposta(data.resultado || "Resposta recebida, mas vazia.");
+      setResposta(data);
     } catch (error) {
       console.error("Erro:", error);
       setError(`Ocorreu um erro ao enviar o PDF: ${error.message}`);
