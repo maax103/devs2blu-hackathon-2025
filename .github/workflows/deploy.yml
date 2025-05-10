@@ -13,13 +13,48 @@ jobs:
     - name: Checkout código
       uses: actions/checkout@v3
 
+    - name: Setup AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.PROJECT_REGION }}
+
+    - name: Terraform Init
+      working-directory: ./terraform
+      run: terraform init
+
+    - name: Terraform Apply
+      working-directory: ./terraform
+      run: terraform apply -auto-approve -var="project_region=${{ env.PROJECT_REGION }}" -var="project_name=${{ env.PROJECT_NAME }}"
+
+    - name: Capturar outputs do Terraform
+      id: terraform-outputs
+      working-directory: ./terraform
+      run: |
+        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip)
+        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip)
+        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip)
+        
+        # Adicionar ao GITHUB_OUTPUT para uso posterior nos steps
+        echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP" >> $GITHUB_OUTPUT
+        echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
+        echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
+        
+        # Exibir nos logs
+        echo "============= ENDEREÇOS IP ATUAIS ============="
+        echo "Frontend (NGINX) - IP Público: $NGINX_PUBLIC_IP"
+        echo "Frontend (NGINX) - IP Privado: $NGINX_PRIVATE_IP"
+        echo "Backend - IP Privado: $BACKEND_PRIVATE_IP"
+        echo "==============================================="
+
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.FRONTEND_EC2_HOST }} >> ~/.ssh/known_hosts
-        ssh-keyscan -H ${{ secrets.BACKEND_EC2_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }} >> ~/.ssh/known_hosts
 
     ## ---------- FRONTEND ----------
     - name: Build React App
@@ -31,10 +66,10 @@ jobs:
     - name: Deploy React App para EC2 (via NGINX)
       run: |
         # Copia os arquivos da build para uma pasta temporária no servidor
-        scp -r ./front/build/* ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }}:/tmp/react-build
+        scp -r ./front/build/* ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}:/tmp/react-build
 
         # Substitui o conteúdo da pasta servida pelo NGINX
-        ssh ${{ secrets.EC2_USER }}@${{ secrets.FRONTEND_EC2_HOST }} << 'EOF'
+        ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }} << 'EOF'
           sudo rm -rf /usr/share/nginx/html/*
           sudo cp -r /tmp/react-build/* /usr/share/nginx/html/
           sudo rm -rf /tmp/react-build
@@ -48,5 +83,29 @@ jobs:
 #
  #   - name: Deploy Java App para EC2
  #     run: |
- #       scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ secrets.BACKEND_EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app.jar
- #       ssh ${{ secrets.EC2_USER }}@${{ secrets.BACKEND_EC2_HOST }} 'sudo systemctl restart backend-app'
+ #       scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}:/home/${{ secrets.EC2_USER }}/app.jar
+ #       ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }} 'sudo systemctl restart backend-app'
+    
+    # Passo final para salvar IPs e criar um artefato de deployment
+    - name: Salvar informações de deployment
+      run: |
+        mkdir -p deployment-info
+        echo "# Informações de Deployment - $(date)" > deployment-info/endpoints.md
+        echo "## Endereços das Instâncias" >> deployment-info/endpoints.md
+        echo "- Frontend (NGINX) - IP Público: ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}" >> deployment-info/endpoints.md
+        echo "- Frontend (NGINX) - IP Privado: ${{ steps.terraform-outputs.outputs.NGINX_PRIVATE_IP }}" >> deployment-info/endpoints.md
+        echo "- Backend - IP Privado: ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}" >> deployment-info/endpoints.md
+        echo "" >> deployment-info/endpoints.md
+        echo "## URLs da Aplicação" >> deployment-info/endpoints.md
+        echo "- Frontend: http://${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}" >> deployment-info/endpoints.md
+        echo "- API Backend (interno): http://${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}:8080" >> deployment-info/endpoints.md
+        
+        # Exibir também no console
+        cat deployment-info/endpoints.md
+    
+    # Salvar como artefato do GitHub Actions
+    - name: Upload do arquivo de endpoints como artefato
+      uses: actions/upload-artifact@v3
+      with:
+        name: deployment-endpoints
+        path: deployment-info/endpoints.md
