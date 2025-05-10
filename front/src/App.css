@@ -1,12 +1,11 @@
-*{
+* {
   margin: 0;
   padding: 0;
-  font-family:  Geneva, Verdana, sans-serif;
+  font-family: Geneva, Verdana, sans-serif;
   background-color: #f4f4f4;
 }
 
-
-button{
+button {
   display: block;
   margin: 0 auto;
   padding: 18px 60px;
@@ -19,53 +18,228 @@ button{
   transition: background-color 0.3s, transform 0.2s;
 }
 
-button:hover{
-   background-color: rgb(144, 211, 144);
+button:hover {
+  background-color: rgb(144, 211, 144);
   transform: scale(1.05);
 }
-.container , h1{
+
+.container, h1 {
   text-align: center;
   margin-top: 50px;
-   color: #3e2f5b;
+  color: #3e2f5b;
   margin-bottom: 60px;
 }
 
-.inputSubmit{
+.inputSubmit {
   font-size: 1.2rem;
   padding: 40px;
   border: none;
-  background-color:  rgb(203, 193, 212);
+  background-color: rgb(203, 193, 212);
   border-radius: 20px;
   width: 100%;
   max-width: 900px;
   display: block;
-  margin:  0 auto 40px auto; /*Usado para centralizar o elemento na tela*/
-  margin-top: 80px; /* */
+  margin: 0 auto 40px auto;
+  margin-top: 80px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  resize: vertical; /* permite redimensionar verticalmente */
+  resize: vertical;
 }
 
-
-
-.inputSubmit:focus{
+.inputSubmit:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(100,100,150,0.2);
+  box-shadow: 0 0 0 3px rgba(100, 100, 150, 0.2);
 }
 
 .resultado {
-  margin: 80px auto 0 auto;; /*Usado para centralizar o elemento na tela*/
+  margin: 80px auto 0 auto;
   background-color: rgb(203, 193, 212);
   border: none;
-  padding: 50px;
+  padding: 30px;
   border-radius: 16px;
   font-size: 1.2rem;
   color: #333;
-  max-width: 800px;
-  height: 400px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  max-width: 900px;
+  min-height: 400px;
+  max-height: 800px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   text-align: left;
   line-height: 1.6;
 }
-.resultado , p{
+
+.resultado *, .empty-result {
   background-color: rgb(203, 193, 212);
+}
+
+/* Estilos para o componente de análise */
+.analysis-content {
+  background-color: rgb(203, 193, 212);
+  width: 100%;
+}
+
+.clause-analysis {
+  background-color: rgb(203, 193, 212);
+  margin-bottom: 20px;
+}
+
+.clause-header {
+  background-color: rgb(203, 193, 212);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(62, 47, 91, 0.2);
+  margin-bottom: 15px;
+}
+
+.clause-id-container {
+  background-color: rgb(203, 193, 212);
+  display: flex;
+  align-items: center;
+}
+
+.clause-number {
+  background-color: #3e2f5b;
+  color: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.clause-id {
+  background-color: rgb(203, 193, 212);
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.clause-title {
+  background-color: rgb(203, 193, 212);
+  flex-grow: 1;
+  margin: 0 15px;
+  color: #3e2f5b;
+  font-size: 1.4rem;
+}
+
+.risk-container {
+  background-color: rgb(203, 193, 212);
+  display: flex;
+  align-items: center;
+}
+
+.risk-label {
+  background-color: rgb(203, 193, 212);
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.risk-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.risk-high {
+  background-color: #e74c3c;
+}
+
+.risk-medium {
+  background-color: #f39c12;
+}
+
+.risk-low {
+  background-color: #2ecc71;
+}
+
+.clause-text {
+  background-color: rgb(203, 193, 212);
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+  border-left: 4px solid #3e2f5b;
+}
+
+.clause-text p {
+  background-color: transparent;
+}
+
+.categories-section, .issues-section, .recommendations-section {
+  background-color: rgb(203, 193, 212);
+  margin-bottom: 20px;
+}
+
+.categories-section h3, .issues-section h3, .recommendations-section h3 {
+  background-color: rgb(203, 193, 212);
+  margin-bottom: 10px;
+  color: #3e2f5b;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.categories-container {
+  background-color: rgb(203, 193, 212);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.category-tag {
+  background-color: #3e2f5b;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.issues-list, .recommendations-list {
+  background-color: rgb(203, 193, 212);
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+.issues-list li, .recommendations-list li {
+  background-color: rgb(203, 193, 212);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.recommendations-list li {
+  color: #2c3e50;
+}
+
+.recommendations-section {
+  background-color: #dfd9e6;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #27ae60;
+}
+
+.recommendations-section h3, .recommendations-section ul, .recommendations-section li {
+  background-color: #dfd9e6;
+}
+
+@media (max-width: 768px) {
+  .clause-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .clause-title {
+    margin: 10px 0;
+  }
+  
+  .risk-container {
+    align-self: flex-start;
+  }
 }
