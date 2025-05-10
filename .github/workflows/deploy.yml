@@ -48,29 +48,20 @@ jobs:
       id: terraform-outputs
       working-directory: ./terraform
       run: |
-        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip)
-        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip)
-        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip)
+        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip 2>/dev/null)
+        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip 2>/dev/null)
+        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip 2>/dev/null)
         
-        # Adicionar ao GITHUB_OUTPUT para uso posterior nos steps
         echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP" >> $GITHUB_OUTPUT
         echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
         echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
         
-        # Exibir de forma destacada no console para fácil visualização
-        echo ""
-        echo "========================================================================"
-        echo "=                        ENDEREÇOS IP ATUAIS                           ="
-        echo "========================================================================"
+        echo -e "\n== ENDEREÇOS IP ATUAIS =="
         echo "FRONTEND_PUBLIC_IP=$NGINX_PUBLIC_IP"
         echo "FRONTEND_PRIVATE_IP=$NGINX_PRIVATE_IP"
         echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP"
-        echo ""
-        echo "URLs DA APLICAÇÃO:"
         echo "FRONTEND_URL=http://$NGINX_PUBLIC_IP"
         echo "BACKEND_URL=http://$BACKEND_PRIVATE_IP:8080"
-        echo "========================================================================"
-        echo ""
 
     - name: Setup SSH
       run: |
