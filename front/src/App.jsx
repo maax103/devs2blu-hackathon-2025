@@ -86,7 +86,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      const url = `http://${import.meta.env.VITE_SERVER_HOST}:${import.meta.env.VITE_SERVER_PORT}/ai/pdf`;
+      const url = `http://8080:8080/ai/pdf`;
       const response = await fetch(url, {
         method: "POST",
         body: formData,
