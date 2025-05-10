@@ -1,7 +1,10 @@
-package com.example.demo.controller;
+package com.example.javaservice.controller;
 
+import java.util.List;
 import java.util.Map;
 
+import com.example.javaservice.model.Clause;
+import com.example.javaservice.model.ContractRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.service.QnAnswerService;
+import com.example.javaservice.service.QnAnswerService;
 
 @RestController
 public class TesteController {
@@ -23,9 +26,8 @@ public class TesteController {
 	}
 	
 	@PostMapping("/ai")
-	public ResponseEntity<String> helo(@RequestBody Map<String, String> payload) {
-		String question = payload.get("question");
-		String answer = qnAnswer.getAnswer(question);
+	public ResponseEntity<List<Clause>> helo(@RequestBody ContractRequestBody payload) {
+		List<Clause> answer = qnAnswer.getAnswer(payload.contract());
 		return ResponseEntity.ok(answer);
 	}
 	
