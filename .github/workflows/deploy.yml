@@ -1,20 +1,16 @@
-name: Deploy React and Java App
+name: Deploy App
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    outputs:
-      nginx_public_ip: ${{ steps.terraform-outputs.outputs.nginx_public_ip }}
-      nginx_private_ip: ${{ steps.terraform-outputs.outputs.nginx_private_ip }}
-      backend_private_ip: ${{ steps.terraform-outputs.outputs.backend_private_ip }}
-
+    
     steps:
-    - name: Checkout código
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Setup AWS credentials
@@ -22,82 +18,38 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.PROJECT_REGION }}
-
-    - name: Checkout Terraform repo
-      uses: actions/checkout@v3
-      with:
-        repository: maax103/devs2blu-hackathon-infra-2025 
-        path: terraform
+        aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.7  
-
-    - name: Terraform Init
-      working-directory: ./terraform
-      run: terraform init
 
     - name: Terraform Apply
       working-directory: ./terraform
       run: terraform apply -auto-approve
 
-    - name: Get Terraform Outputs
-      id: terraform-outputs
+    - name: Get IPs
+      id: get-ips
       working-directory: ./terraform
       run: |
-        NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip | tr -d '\n')
-        NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip | tr -d '\n')
-        BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip | tr -d '\n')
-        
-        echo "nginx_public_ip=$NGINX_PUBLIC_IP" >> $GITHUB_OUTPUT
-        echo "nginx_private_ip=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
-        echo "backend_private_ip=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
+        echo "nginx_ip=$(terraform output -raw nginx_public_ip)" >> $GITHUB_OUTPUT
 
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.nginx_public_ip }} >> ~/.ssh/known_hosts
-        ssh-keyscan -H ${{ steps.terraform-outputs.outputs.backend_private_ip }} >> ~/.ssh/known_hosts
 
-    ## ---------- FRONTEND ----------
     - name: Build React App
-      working-directory: front
+      working-directory: ./front
       run: |
         npm ci
         npm run build
 
-    - name: Deploy React App to EC2 (NGINX)
+    - name: Deploy to EC2
       run: |
-      
-        echo ${{ secrets.EC2_USER }}
-        echo ${ { steps.terraform-outputs.outputs.nginx_public_ip }}
-        echo ${ { steps.terraform-outputs.outputs.nginx_private_ip }}
-        echo ${ { steps.terraform-outputs.outputs.backend_private_ip }}
-        scp -r ./front/dist/* ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/react-build
-        
-        ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.nginx_public_ip }} << 'EOF'
-          sudo rm -rf /usr/share/nginx/html/*
-          sudo cp -r /tmp/react-build/* /usr/share/nginx/html/
-          sudo rm -rf /tmp/react-build
-          sudo systemctl reload nginx
-        EOF
-
-    ## ---------- BACKEND ----------
-    # - name: Build Java App
-    #   working-directory: backend
-    #   run: ./gradlew build
-    #
-    # - name: Deploy Java App to EC2
-    #   run: |
-    #     scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.backend_private_ip }}:/home/${{ secrets.EC2_USER }}/app.jar
-    #     ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.backend_private_ip }} 'sudo systemctl restart backend-app'
-
-    - name: Save deployment info
-      run: |
-        echo "Frontend URL: http://${{ steps.terraform-outputs.outputs.nginx_public_ip }}" > deployment-info.txt
-        echo "Backend Private IP: ${{ steps.terraform-outputs.outputs.backend_private_ip }}" >> deployment-info.txt
-        cat deployment-info.txt
+        scp -r ./front/dist/* ec2-user@${{ steps.get-ips.outputs.nginx_ip }}:/tmp/app
+        ssh ubuntu@${{ steps.get-ips.outputs.nginx_ip }} '
+          sudo rm -rf /var/www/html/*
+          sudo mv /tmp/app/* /var/www/html/
+          sudo systemctl restart nginx
+        '
