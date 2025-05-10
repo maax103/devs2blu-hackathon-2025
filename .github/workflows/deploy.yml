@@ -45,7 +45,6 @@ jobs:
       working-directory: ./terraform
       run: |
         terraform apply -auto-approve
-        echo IP=$(terraform output -raw nginx_public_ip)
         echo "nginx_public_ip=$(terraform output -raw nginx_public_ip)" >> "$GITHUB_OUTPUT"
 
 
