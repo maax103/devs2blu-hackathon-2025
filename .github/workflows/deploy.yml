@@ -42,7 +42,7 @@ jobs:
 
     - name: Terraform Apply
       working-directory: ./terraform
-      run: terraform apply -auto-approve -var="project_region=${{ env.PROJECT_REGION }}" -var="project_name=${{ env.PROJECT_NAME }}"
+      run: terraform apply -auto-approve -var="project_region=${{ env.PROJECT_REGION }}"
 
     - name: Capturar outputs do Terraform
       id: terraform-outputs
