@@ -41,17 +41,12 @@ jobs:
       run: terraform init
 
     - name: Terraform Apply
+      id: terraform-outputs
       working-directory: ./terraform
-      run: terraform apply -auto-approve
-
-    - name: Get nginx IP
-      id: get-ips
       run: |
-        IP=$(terraform output -raw nginx_public_ip)
-        CLEAN_IP=$(echo "$IP" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1 | tr -d '\n')
-        echo IP=$IP
-        echo CLEAN_IP=$CLEAN_IP
-        echo "nginx_ip=$CLEAN_IP" >> "$GITHUB_OUTPUT"
+        terraform apply -auto-approve
+        echo IP=$(terraform output -raw nginx_public_ip)
+        echo "nginx_public_ip=$(terraform output -raw nginx_public_ip)" >> "$GITHUB_OUTPUT"
 
 
     - name: Setup SSH
@@ -68,8 +63,8 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        scp -r ./front/dist/* ec2-user@${{ steps.get-ips.outputs.nginx_ip }}:/tmp/app
-        ssh ec2-user@${{ steps.get-ips.outputs.nginx_ip }} '
+        scp -r ./front/dist/* ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/app
+        ssh ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }} '
           sudo rm -rf /var/www/html/*
           sudo mv /tmp/app/* /var/www/html/
           sudo systemctl restart nginx
