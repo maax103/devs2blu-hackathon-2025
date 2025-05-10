@@ -149,7 +149,7 @@ setTimeout(() => {
       setError("Ocorreu um erro durante a análise do PDF. Por favor tente novamente.");
       setIsLoading(false);
     } */
-      const url = `http://8080:8080/ai/pdf`;
+      const url = `http://localhost:8080/ai/pdf`;
       const response = await fetch(url, {
         method: "POST",
         body: formData,
