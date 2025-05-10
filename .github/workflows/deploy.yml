@@ -1,16 +1,20 @@
-name: Deploy App
+name: Deploy React and Java App
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    outputs:
+      nginx_public_ip: ${{ steps.terraform-outputs.outputs.nginx_public_ip }}
+      nginx_private_ip: ${{ steps.terraform-outputs.outputs.nginx_private_ip }}
+      backend_private_ip: ${{ steps.terraform-outputs.outputs.backend_private_ip }}
+
     steps:
-    - name: Checkout code
+    - name: Checkout código
       uses: actions/checkout@v3
 
     - name: Setup AWS credentials
@@ -20,8 +24,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.PROJECT_REGION }}
 
+    - name: Checkout Terraform repo
+      uses: actions/checkout@v3
+      with:
+        repository: maax103/devs2blu-hackathon-infra-2025 
+        path: terraform
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.7  
+
+    - name: Terraform Init
+      working-directory: ./terraform
+      run: terraform init
 
     - name: Terraform Apply
       working-directory: ./terraform
