@@ -25,6 +25,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.PROJECT_REGION }}
 
+    - name: Checkout Terraform repo
+      uses: actions/checkout@v3
+      with:
+        repository: maax103/devs2blu-hackathon-infra-2025 
+        path: terraform
+
     - name: Terraform Init
       working-directory: ./terraform
       run: terraform init
