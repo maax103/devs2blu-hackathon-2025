@@ -64,11 +64,31 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        sudo yum install -y nginx
-        scp -r ./front/dist/* ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/app
-        ssh ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }} '
+        echo "📦 Instalando nginx localmente (caso esteja rodando local)..."
+        if command -v yum &> /dev/null; then
+          sudo yum install -y nginx
+        elif command -v apt &> /dev/null; then
+          sudo apt update && sudo apt install -y nginx
+        else
+          echo "Gerenciador de pacotes não encontrado no runner. Pulando instalação local do nginx."
+        fi
+
+        echo "🚀 Enviando arquivos via SCP..."
+        scp -o StrictHostKeyChecking=no -r ./front/dist/* ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/app
+
+        echo "🛠️ Configurando nginx remotamente..."
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }} << 'EOF'
+          echo "🧹 Limpando diretório atual do nginx..."
           sudo rm -rf /usr/share/nginx/html/*
+
+          echo "📦 Movendo nova aplicação..."
           sudo mv /tmp/app/* /usr/share/nginx/html/
+
+          echo "🔒 Ajustando permissões..."
           sudo chown -R nginx:nginx /usr/share/nginx/html
+
+          echo "🚀 Reiniciando o nginx..."
           sudo systemctl restart nginx
-        '
+
+          echo "✅ Deploy finalizado com sucesso!"
+        EOF
