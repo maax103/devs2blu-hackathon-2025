@@ -8,6 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Definir outputs do job para serem usados em outros jobs, se necessário
+    outputs:
+      nginx_public_ip: ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}
+      nginx_private_ip: ${{ steps.terraform-outputs.outputs.NGINX_PRIVATE_IP }}
+      backend_private_ip: ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}
 
     steps:
     - name: Checkout código
@@ -41,12 +46,20 @@ jobs:
         echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
         echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
         
-        # Exibir nos logs
-        echo "============= ENDEREÇOS IP ATUAIS ============="
-        echo "Frontend (NGINX) - IP Público: $NGINX_PUBLIC_IP"
-        echo "Frontend (NGINX) - IP Privado: $NGINX_PRIVATE_IP"
-        echo "Backend - IP Privado: $BACKEND_PRIVATE_IP"
-        echo "==============================================="
+        # Exibir de forma destacada no console para fácil visualização
+        echo ""
+        echo "========================================================================"
+        echo "=                        ENDEREÇOS IP ATUAIS                           ="
+        echo "========================================================================"
+        echo "FRONTEND_PUBLIC_IP=$NGINX_PUBLIC_IP"
+        echo "FRONTEND_PRIVATE_IP=$NGINX_PRIVATE_IP"
+        echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP"
+        echo ""
+        echo "URLs DA APLICAÇÃO:"
+        echo "FRONTEND_URL=http://$NGINX_PUBLIC_IP"
+        echo "BACKEND_URL=http://$BACKEND_PRIVATE_IP:8080"
+        echo "========================================================================"
+        echo ""
 
     - name: Setup SSH
       run: |
@@ -86,7 +99,7 @@ jobs:
  #       scp ./backend/build/libs/*.jar ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}:/home/${{ secrets.EC2_USER }}/app.jar
  #       ssh ${{ secrets.EC2_USER }}@${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }} 'sudo systemctl restart backend-app'
     
-    # Passo final para salvar IPs e criar um artefato de deployment
+    # Salvar informações de deployment
     - name: Salvar informações de deployment
       run: |
         mkdir -p deployment-info
@@ -100,12 +113,13 @@ jobs:
         echo "- Frontend: http://${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }}" >> deployment-info/endpoints.md
         echo "- API Backend (interno): http://${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }}:8080" >> deployment-info/endpoints.md
         
-        # Exibir também no console
+        # Exibir também no console com formatação destacada
+        echo ""
+        echo "================================================================"
+        echo "                    INFORMAÇÕES DE DEPLOYMENT                    "
+        echo "================================================================"
         cat deployment-info/endpoints.md
-    
-    # Salvar como artefato do GitHub Actions
-    - name: Upload do arquivo de endpoints como artefato
-      uses: actions/upload-artifact@v2
-      with:
-        name: deployment-endpoints
-        path: deployment-info/endpoints.md
+        echo "================================================================"
+        echo ""
+
+        
