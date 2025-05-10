@@ -51,10 +51,14 @@ jobs:
         NGINX_PUBLIC_IP=$(terraform output -raw nginx_public_ip 2>/dev/null)
         NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip 2>/dev/null)
         BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip 2>/dev/null)
-        
+
         echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP"
         echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP"
         echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP"
+
+        echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP" >> $GITHUB_OUTPUT
+        echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
+        echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
 
     - name: Setup SSH
       run: |
@@ -63,6 +67,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ steps.terraform-outputs.outputs.NGINX_PUBLIC_IP }} >> ~/.ssh/known_hosts
         ssh-keyscan -H ${{ steps.terraform-outputs.outputs.BACKEND_PRIVATE_IP }} >> ~/.ssh/known_hosts
+
 
     ## ---------- FRONTEND ----------
     - name: Build React App
