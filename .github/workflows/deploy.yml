@@ -52,16 +52,9 @@ jobs:
         NGINX_PRIVATE_IP=$(terraform output -raw nginx_private_ip 2>/dev/null)
         BACKEND_PRIVATE_IP=$(terraform output -raw backend_private_ip 2>/dev/null)
         
-        echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP" >> $GITHUB_OUTPUT
-        echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP" >> $GITHUB_OUTPUT
-        echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP" >> $GITHUB_OUTPUT
-        
-        echo -e "\n== ENDEREÇOS IP ATUAIS =="
-        echo "FRONTEND_PUBLIC_IP=$NGINX_PUBLIC_IP"
-        echo "FRONTEND_PRIVATE_IP=$NGINX_PRIVATE_IP"
+        echo "NGINX_PUBLIC_IP=$NGINX_PUBLIC_IP"
+        echo "NGINX_PRIVATE_IP=$NGINX_PRIVATE_IP"
         echo "BACKEND_PRIVATE_IP=$BACKEND_PRIVATE_IP"
-        echo "FRONTEND_URL=http://$NGINX_PUBLIC_IP"
-        echo "BACKEND_URL=http://$BACKEND_PRIVATE_IP:8080"
 
     - name: Setup SSH
       run: |
