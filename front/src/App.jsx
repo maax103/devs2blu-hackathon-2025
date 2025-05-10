@@ -2,31 +2,56 @@ import React, { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [clausula, setClausula] = useState("");
+  const [file, setFile] = useState(null);
+  const [fileName, setFileName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [resposta, setResposta] = useState(null);
+  const [error, setError] = useState("");
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile && selectedFile.type === "application/pdf") {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+      setError("");
+    } else if (selectedFile) {
+      setFile(null);
+      setFileName("");
+      setError("Por favor, selecione apenas arquivos PDF.");
+    }
+  };
 
   const handleSubmit = async () => {
-    const url = `http://${import.meta.env.VITE_SERVER_HOST}:${import.meta.env.VITE_SERVER_PORT}/ai`;
+    if (!file) {
+      setError("Por favor, selecione um arquivo PDF para análise.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
+      const url = `http://${import.meta.env.VITE_SERVER_HOST}:${import.meta.env.VITE_SERVER_PORT}/ai/pdf`;
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ clausula: clausula }),
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao se comunicar com o servidor.");
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-
-      
       setResposta(data.resultado || "Resposta recebida, mas vazia.");
     } catch (error) {
       console.error("Erro:", error);
-      setResposta("Ocorreu um erro ao enviar a cláusula.");
+      setError(`Ocorreu um erro ao enviar o PDF: ${error.message}`);
+      setResposta(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,21 +144,56 @@ function App() {
     <div className="container">
       <h1>JurisIA</h1>
 
-      <textarea
-        className="inputSubmit"
-        placeholder="Insira um texto para análise"
-        value={clausula}
-        onChange={(e) => setClausula(e.target.value)}
-        rows={8}
-      />
+      <div className="file-upload-container">
+        <div className="file-input-wrapper">
+          <input
+            type="file"
+            accept=".pdf"
+            id="pdf-file"
+            className="file-input"
+            onChange={handleFileChange}
+          />
+          <label htmlFor="pdf-file" className="file-label">
+            {fileName ? fileName : "Selecionar arquivo PDF"}
+          </label>
+        </div>
+        {fileName && (
+          <div className="selected-file">
+            <span className="file-name">{fileName}</span>
+            <button 
+              className="remove-file" 
+              onClick={() => {
+                setFile(null);
+                setFileName("");
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
 
-      <button type="button" onClick={handleSubmit}>Enviar</button>
+      {error && <div className="error-message">{error}</div>}
+
+      <button 
+        type="button" 
+        onClick={handleSubmit} 
+        disabled={isLoading || !file}
+        className={isLoading ? "loading" : ""}
+      >
+        {isLoading ? "Analisando..." : "Analisar PDF"}
+      </button>
 
       <div className="resultado">
-        {resposta ? (
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="loader"></div>
+            <p>Analisando documento PDF...</p>
+          </div>
+        ) : resposta ? (
           <AnalysisResult data={resposta} />
         ) : (
-          <p className="empty-result">Nenhuma resposta ainda. Insira o texto do contrato e clique em Enviar para analisar.</p>
+          <p className="empty-result">Nenhuma resposta ainda. Faça upload de um arquivo PDF e clique em Analisar PDF para começar.</p>
         )}
       </div>
     </div>
