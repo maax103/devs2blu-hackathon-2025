@@ -86,68 +86,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      setTimeout(() => {
-        const mockResponse = [
-          {
-            number: 1,
-            clauseId: "Cláusula de Rescisão",
-            title: "Rescisão Contratual",
-            text: "O contrato poderá ser rescindido por qualquer uma das partes com aviso prévio de 30 dias.",
-            riskLevel: "Alto",
-            categories: ["Rescisão", "Prazo", "Notificação"],
-            issues: [
-              "Prazo de aviso prévio curto para rescisão",
-              "Não especifica forma de notificação válida",
-              "Ausência de multa por descumprimento"
-            ],
-            recommendations: [
-              "Aumentar o prazo de aviso prévio para 60 dias",
-              "Especificar que a notificação deve ser por escrito",
-              "Incluir multa por rescisão sem aviso prévio adequado"
-            ]
-          },
-          {
-            number: 2,
-            clauseId: "Cláusula de Multa",
-            title: "Multa por Descumprimento",
-            text: "Valor pode ser considerado abusivo.",
-            riskLevel: "Médio",
-            categories: ["Penalidades", "Multa"],
-            issues: [
-              "Valor da multa não especificado claramente",
-              "Possível abusividade nos termos"
-            ],
-            recommendations: [
-              "Definir claramente o valor ou percentual da multa",
-              "Limitar a multa a um valor razoável (10-20% do contrato)"
-            ]
-          },
-          {
-            number: 3,
-            clauseId: "Cláusula de Jurisdição",
-            title: "Foro Escolhido",
-            text: "Foro escolhido pode ser contestado.",
-            riskLevel: "Baixo",
-            categories: ["Jurisdição", "Foro"],
-            issues: [
-              "Foro escolhido distante da residência/sede de uma das partes",
-              "Pode ser considerado cláusula abusiva em contratos de adesão"
-            ],
-            recommendations: [
-              "Escolher foro neutro ou do réu conforme código de processo civil",
-              "Para contratos de consumo, considerar o domicílio do consumidor"
-            ]
-          }
-        ];
-        
-        setResposta(mockResponse);
-        setIsLoading(false);
-      }, 2000);
-    } catch (err) {
-      setError("Ocorreu um erro durante a análise do PDF. Por favor tente novamente.");
-      setIsLoading(false);
-    }
-      /*const url = `http://${import.meta.env.VITE_SERVER_HOST}:${import.meta.env.VITE_SERVER_PORT}/ai/pdf`;
+      const url = `http://${import.meta.env.VITE_SERVER_HOST}:${import.meta.env.VITE_SERVER_PORT}/ai/pdf`;
       const response = await fetch(url, {
         method: "POST",
         body: formData,
@@ -166,7 +105,7 @@ function App() {
     } finally {
       setIsLoading(false);
     } 
-      */
+      
   };
 
   const toggleDrawer = () => {
