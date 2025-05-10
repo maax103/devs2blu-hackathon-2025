@@ -1,0 +1,44 @@
+steps:
+- name: Checkout app repo
+  uses: actions/checkout@v3
+
+- name: Checkout Terraform repo
+  uses: actions/checkout@v3
+  with:
+    repository: seu-org/seu-repo-terraform
+    path: terraform
+
+- name: Setup AWS credentials
+  uses: aws-actions/configure-aws-credentials@v2
+  with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: ${{ env.PROJECT_REGION }}
+
+- name: Terraform Init
+  working-directory: ./terraform
+  run: terraform init
+
+- name: Terraform Apply
+  working-directory: ./terraform
+  run: terraform apply -auto-approve -var="project_region=${{ env.PROJECT_REGION }}" -var="project_name=${{ env.PROJECT_NAME }}"
+
+- name: Build Backend (Java)
+  run: |
+    cd backend
+    ./gradlew build
+
+- name: Deploy Backend to EC2
+  run: |
+    # Comando SSH ou uso do AWS SSM para copiar e executar backend no EC2
+    echo "Deploy do backend aqui"
+
+- name: Build Frontend (React)
+  run: |
+    cd frontend
+    npm install
+    npm run build
+
+- name: Deploy Frontend (ex: para S3)
+  run: |
+    aws s3 sync frontend/build s3://seu-bucket-react --delete

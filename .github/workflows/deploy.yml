@@ -67,6 +67,7 @@ jobs:
         scp -r ./front/dist/* ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }}:/tmp/app
         ssh ec2-user@${{ steps.terraform-outputs.outputs.nginx_public_ip }} '
           sudo rm -rf /var/www/html/*
-          sudo mv /tmp/app/* /var/www/html/
+          sudo mv /tmp/app/* /usr/share/nginx/html/
+          sudo chown -R nginx:nginx /usr/share/nginx/html
           sudo systemctl restart nginx
         '
