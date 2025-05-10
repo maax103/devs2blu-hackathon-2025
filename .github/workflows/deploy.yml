@@ -48,6 +48,7 @@ jobs:
       run: |
         IP=$(terraform output -raw nginx_public_ip)
         CLEAN_IP=$(echo "$IP" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1 | tr -d '\n')
+        echo CLEAN_IP=$CLEAN_IP
         echo "nginx_ip=$CLEAN_IP" >> "$GITHUB_OUTPUT"
 
 
